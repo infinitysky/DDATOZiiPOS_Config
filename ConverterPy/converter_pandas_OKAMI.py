@@ -14,7 +14,7 @@ def main():
     #   -------------------  Configurations -------------------------------
     #                     ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     server = '192.168.1.85,9899'
-    database = '41OKAMI_Newton'
+    database = '04Okami_Footscray'
     username = 'sa'
     password = '0000'
 
@@ -43,7 +43,7 @@ def main():
 
     SqlResult1 = pd.read_sql(MenuItemQuery, PassSQLServerConnection)
     SourceDataFromDB = SqlResult1.astype("string")
-    NewExcelDataFrame = pd.DataFrame()
+    
   
 
     #print("total MenuItem rows: ")
@@ -59,7 +59,7 @@ def main():
     
     print("Start convert to ZiiPOS")
     
-    ZiiPOSExcelTemplete = pd.read_excel('OKAMI_STANDER_V1.xlsx', index_col=None,dtype = str)
+    ZiiPOSExcelTemplete = pd.read_excel('OKAMI_STANDER_templet.xlsx', index_col=None,dtype = str)
     ZiiPOSExcel=ZiiPOSExcelTemplete.astype("string")
     ZiiPOSExcel_Done = processPrinterSetting(ZiiPOSExcel,SourceDataFromDB)
     
@@ -74,24 +74,24 @@ def main():
 def processPrinterSetting(ZiiPOSExcel, SourceDataFromDB):
     
     x=0
-    
-    
     NewExcelDataFrame=pd.DataFrame()
-    
-    
-        
+   
     for x in range(len(ZiiPOSExcel)):
         #print(x ," / ",len(ZiiPOSExcel))
-        prograss=round( x/len(ZiiPOSExcel)*100,1)
         
-        if (prograss>30.0 and prograss<30.2):
-            print(str(prograss)+'%')
         
-        elif (prograss>60 and prograss<60.2):
-            print(str(prograss)+'%')
+        prgrass = round(x/len(ZiiPOSExcel)*100,1)
+        if(prgrass>30.0 and prgrass<30.2):
+            print(str(prgrass)+'%')
             
-        elif (prograss>90 and prograss<90.2):
-            print(str(prograss)+'%')
+        elif(prgrass>60.0 and prgrass<60.2):
+            print(str(prgrass)+'%')
+            
+        elif(prgrass>90.0 and prgrass<90.2):
+            print(str(prgrass)+'%')
+        
+        
+        
         
         tempItemCode = ZiiPOSExcel.iloc[x]["ItemCode"]     
         tempReadData = ZiiPOSExcel.iloc[x]
@@ -138,7 +138,7 @@ def processPrinterSetting(ZiiPOSExcel, SourceDataFromDB):
         elif ZiiPOSExcel.iloc[x]["ItemCode"] =='121':
             #Instrction how many pieces totally
 
-            tempReadData["PrinterPort"]="0"
+            tempReadData["PrinterPort"]="7"
             tempReadData["PrinterPort1"]="0"
             tempReadData["PrinterPort2"]="0"
             tempReadData["PrinterPort3"]="0"
@@ -147,7 +147,7 @@ def processPrinterSetting(ZiiPOSExcel, SourceDataFromDB):
         elif ZiiPOSExcel.iloc[x]["ItemCode"] =='L530':
             #L530	TAKEAWAY BAG
 
-            tempReadData["PrinterPort"]="0"
+            tempReadData["PrinterPort"]="7"
             tempReadData["PrinterPort1"]="0"
             tempReadData["PrinterPort2"]="0"
             tempReadData["PrinterPort3"]="0"
@@ -164,12 +164,10 @@ def processPrinterSetting(ZiiPOSExcel, SourceDataFromDB):
             
         elif ZiiPOSExcel.iloc[x]["ItemCode"] =='C403':
             #C403	(TA) SHSHI ROLL PLATTER
-            tempResult_C401=SourceDataFromDB.loc[SourceDataFromDB['ItemCode']== "C401"]
-            tempReadData["PrinterPort"]=tempResult_C401["PrinterPort"].item()
-            tempReadData["PrinterPort1"]=tempResult_C401["PrinterPort1"].item()
-            tempReadData["PrinterPort2"]=tempResult_C401["PrinterPort2"].item()
-            tempReadData["PrinterPort3"]=tempResult_C401["PrinterPort3"].item()
-       
+            tempReadData["PrinterPort"]="7"
+            tempReadData["PrinterPort1"]="0"
+            tempReadData["PrinterPort2"]="0"
+            tempReadData["PrinterPort3"]="0"
             
         #  Instractions     
         elif ZiiPOSExcel.iloc[x]["ItemCode"] =='$001':
