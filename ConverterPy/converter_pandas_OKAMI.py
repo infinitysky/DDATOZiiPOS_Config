@@ -12,62 +12,64 @@ def main():
     
     
     #   -------------------  Configurations -------------------------------
-    #                     ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+    #                        ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     server = '192.168.1.85,9899'
-    database = '04Okami_Footscray'
+    #database = '19Okami_Chelsea_Heights'
     username = 'sa'
     password = '0000'
 
     #Password Connection
-    PassSQLServerConnection = pyodbc.connect('DRIVER={SQL Server}; SERVER='+server+'; DATABASE='+database+'; UID='+username+'; PWD='+ password)
-    #Windows Auth
-    #WindowsAuthSQLServerConnection = pyodbc.connect('DRIVER={SQL Server}; SERVER='+server+'; DATABASE='+database+'; Trusted_Connection=True;' )
-
-    #cursor = PassSQLServerConnection.cursor()
+    #PassSQLServerConnection = pyodbc.connect('DRIVER={SQL Server}; SERVER='+server+'; DATABASE='+database+'; UID='+username+'; PWD='+ password)
     
-    MenuItemQuery = "SELECT  ItemCode ,Description1 ,Description2 ,Category ,PrinterPort ,PrinterPort1 ,PrinterPort2 ,PrinterPort3 FROM MenuItem order by ItemCode"
+    #MenuItemQuery = "SELECT  ItemCode ,Description1 ,Description2 ,Category ,PrinterPort ,PrinterPort1 ,PrinterPort2 ,PrinterPort3 FROM MenuItem order by ItemCode"
     
     
-    OutputFileName = database + '_outputFile.xlsx';
+    #OutputFileName = database + '_outputFile.xlsx';
     
-    #                        ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑            
+    #                        ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑            
     #   -------------------  Configurations -------------------------------
     
     
+    print(".............Process Start ............")
+    dblist = pd.read_excel('dblist.xlsx', index_col=None,dtype = str)
+    for y in range(len(dblist)):
+        print(y ," / ",len(dblist))
+        
+        databaseName = dblist.iloc[y]["dblist"]
+        print("Process Database :" + databaseName)
+        PassSQLServerConnection = pyodbc.connect('DRIVER={SQL Server}; SERVER='+server+'; DATABASE='+databaseName+'; UID='+username+'; PWD='+ password)
+    
+        MenuItemQuery = "SELECT  ItemCode ,Description1 ,Description2 ,Category ,PrinterPort ,PrinterPort1 ,PrinterPort2 ,PrinterPort3 FROM MenuItem order by ItemCode"
     
     
-    
-    
-    
-  
+        OutputFileName = './result/'+databaseName + '_outputFile.xlsx';
+        
 
-    SqlResult1 = pd.read_sql(MenuItemQuery, PassSQLServerConnection)
-    SourceDataFromDB = SqlResult1.astype("string")
-    
-  
+        SqlResult1 = pd.read_sql(MenuItemQuery, PassSQLServerConnection)
+        SourceDataFromDB = SqlResult1.astype("string")
+            
+        print("Start convert " + databaseName + " to ZiiPOS")
+        
+        ZiiPOSExcelTemplete = pd.read_excel('OKAMI_STANDER_templet.xlsx', index_col=None,dtype = str)
+        ZiiPOSExcel=ZiiPOSExcelTemplete.astype("string")
+        ZiiPOSExcel_Done = processPrinterSetting(ZiiPOSExcel,SourceDataFromDB)
+        
+        
+        #print(ZiiPOSExcel_Done)
+        print("export to " + OutputFileName)
+        ZiiPOSExcel_Done.to_excel(OutputFileName, index = True, header=True)
 
-    #print("total MenuItem rows: ")
-    #print(len(SourceDataFromDB))
-
-    #print("total rows: ")
-    #print(len(NewExcelDataFrame))
-
-    #print("Export to new excel")
-    #SourceDataFromDB.to_excel(r'export_dataframe.xlsx', index = True, header=True)
-    #print("Process completed")
+        PassSQLServerConnection.close()
+        print(databaseName + " Completed")
+        print("")
+        
     
-    
-    print("Start convert to ZiiPOS")
-    
-    ZiiPOSExcelTemplete = pd.read_excel('OKAMI_STANDER_templet.xlsx', index_col=None,dtype = str)
-    ZiiPOSExcel=ZiiPOSExcelTemplete.astype("string")
-    ZiiPOSExcel_Done = processPrinterSetting(ZiiPOSExcel,SourceDataFromDB)
-    
-    
-    #print(ZiiPOSExcel_Done)
-    ZiiPOSExcel_Done.to_excel(OutputFileName, index = True, header=True)
+    print(".............All Process completed.............")
 
 
+
+
+    
 
 
 
@@ -84,10 +86,10 @@ def processPrinterSetting(ZiiPOSExcel, SourceDataFromDB):
         if(prgrass>30.0 and prgrass<30.2):
             print(str(prgrass)+'%')
             
-        elif(prgrass>60.0 and prgrass<60.2):
+        elif(prgrass>60.0 and prgrass<60.3):
             print(str(prgrass)+'%')
             
-        elif(prgrass>90.0 and prgrass<90.2):
+        elif(prgrass>90.0 and prgrass<90.5):
             print(str(prgrass)+'%')
         
         
@@ -113,21 +115,29 @@ def processPrinterSetting(ZiiPOSExcel, SourceDataFromDB):
             
         if ZiiPOSExcel.iloc[x]["ItemCode"] =='BA01':
             
-           tempResult_SIGNATURE_SET=SourceDataFromDB.loc[SourceDataFromDB['ItemCode']== "BA04"] 
+           tempResult_SIGNATURE_SET=SourceDataFromDB.loc[SourceDataFromDB['Description1']== "DELUXE SET"] 
            #tempResult_SIGNATURE_SET=SourceDataFromDB.loc[SourceDataFromDB['Description1'].str.contains("SIGNATURE", case=False)]
-           tempReadData["PrinterPort"]=tempResult_SIGNATURE_SET["PrinterPort"].item()
-           tempReadData["PrinterPort1"]=tempResult_SIGNATURE_SET["PrinterPort1"].item()
-           tempReadData["PrinterPort2"]=tempResult_SIGNATURE_SET["PrinterPort2"].item()
-           tempReadData["PrinterPort3"]=tempResult_SIGNATURE_SET["PrinterPort3"].item()
-           
+           if tempResult_SIGNATURE_SET.empty:
+               print("tempResult_SIGNATURE_SET NA")
+            
+           else:
+              tempReadData["PrinterPort"]=tempResult_SIGNATURE_SET["PrinterPort"].item()
+              tempReadData["PrinterPort1"]=tempResult_SIGNATURE_SET["PrinterPort1"].item()
+              tempReadData["PrinterPort2"]=tempResult_SIGNATURE_SET["PrinterPort2"].item()
+              tempReadData["PrinterPort3"]=tempResult_SIGNATURE_SET["PrinterPort3"].item()
+            
         elif ZiiPOSExcel.iloc[x]["ItemCode"] =='BA06':
             #FATHER'S DAY SET
-
-            tempResult_FDS=SourceDataFromDB.loc[SourceDataFromDB['ItemCode']== "BA04"]
-            tempReadData["PrinterPort"]=tempResult_FDS["PrinterPort"].item()
-            tempReadData["PrinterPort1"]=tempResult_FDS["PrinterPort1"].item()
-            tempReadData["PrinterPort2"]=tempResult_FDS["PrinterPort2"].item()
-            tempReadData["PrinterPort3"]=tempResult_FDS["PrinterPort3"].item()
+            tempResult_FDS=SourceDataFromDB.loc[SourceDataFromDB['Description1']== "DELUXE SET"] 
+            #tempResult_FDS=SourceDataFromDB.loc[SourceDataFromDB['ItemCode']== "BA04"]
+            
+            if tempResult_FDS.empty:
+                 print("tempResult_FDS NA")
+            else:
+                tempReadData["PrinterPort"]=tempResult_FDS["PrinterPort"].item()
+                tempReadData["PrinterPort1"]=tempResult_FDS["PrinterPort1"].item()
+                tempReadData["PrinterPort2"]=tempResult_FDS["PrinterPort2"].item()
+                tempReadData["PrinterPort3"]=tempResult_FDS["PrinterPort3"].item()
        
         elif ZiiPOSExcel.iloc[x]["ItemCode"] =='BB00':
             tempReadData["PrinterPort"]="0"
@@ -221,42 +231,61 @@ def processPrinterSetting(ZiiPOSExcel, SourceDataFromDB):
                 
              #FSUSHI NIGIRI PLATTER( SET ITEM)
 
-
             tempResult_TI13=SourceDataFromDB.loc[SourceDataFromDB['Description1']== "VEG GYOZA (SET ITEM)"]
-            tempReadData["PrinterPort"]=tempResult_TI13["PrinterPort"].item()
-            tempReadData["PrinterPort1"]=tempResult_TI13["PrinterPort1"].item()
-            tempReadData["PrinterPort2"]=tempResult_TI13["PrinterPort2"].item()
-            tempReadData["PrinterPort3"]=tempResult_TI13["PrinterPort3"].item()
+            
+            if tempResult_TI13.empty:
+                print("TI13 na")
+                
+            else:
+                tempResult_TI13=SourceDataFromDB.loc[SourceDataFromDB['Description1']== "VEG GYOZA (SET ITEM)"]
+                tempReadData["PrinterPort"]=tempResult_TI13["PrinterPort"].item()
+                tempReadData["PrinterPort1"]=tempResult_TI13["PrinterPort1"].item()
+                tempReadData["PrinterPort2"]=tempResult_TI13["PrinterPort2"].item()
+                tempReadData["PrinterPort3"]=tempResult_TI13["PrinterPort3"].item()
+            
+            
             
         elif ZiiPOSExcel.iloc[x]["ItemCode"] =='TI31':
-            
-             #FSUSHI NIGIRI PLATTER( SET ITEM)
-
-
+            #FSUSHI NIGIRI PLATTER( SET ITEM)
             tempResult_TI20=SourceDataFromDB.loc[SourceDataFromDB['ItemCode']== "TI20"]
-            tempReadData["PrinterPort"]=tempResult_TI20["PrinterPort"].item()
-            tempReadData["PrinterPort1"]=tempResult_TI20["PrinterPort1"].item()
-            tempReadData["PrinterPort2"]=tempResult_TI20["PrinterPort2"].item()
-            tempReadData["PrinterPort3"]=tempResult_TI20["PrinterPort3"].item()
+            
+            if tempResult_TI20.empty:
+                print("TI31 na")
+                
+            else:
+                tempReadData["PrinterPort"]=tempResult_TI20["PrinterPort"].item()
+                tempReadData["PrinterPort1"]=tempResult_TI20["PrinterPort1"].item()
+                tempReadData["PrinterPort2"]=tempResult_TI20["PrinterPort2"].item()
+                tempReadData["PrinterPort3"]=tempResult_TI20["PrinterPort3"].item()
+            
+            
        
        
         elif ZiiPOSExcel.iloc[x]["ItemCode"] =='TI32':
              #MINI MATCHA TAIYAKI(SET ITEM)
 
             tempResultA200=SourceDataFromDB.loc[SourceDataFromDB['ItemCode']== "A200"]
-            tempReadData["PrinterPort"]=tempResultA200["PrinterPort"].item()
-            tempReadData["PrinterPort1"]=tempResultA200["PrinterPort1"].item()
-            tempReadData["PrinterPort2"]=tempResultA200["PrinterPort2"].item()
-            tempReadData["PrinterPort3"]=tempResultA200["PrinterPort3"].item()
+            if tempResultA200.empty:
+                print("TI32 na")
+            else:
+                tempReadData["PrinterPort"]=tempResultA200["PrinterPort"].item()
+                tempReadData["PrinterPort1"]=tempResultA200["PrinterPort1"].item()
+                tempReadData["PrinterPort2"]=tempResultA200["PrinterPort2"].item()
+                tempReadData["PrinterPort3"]=tempResultA200["PrinterPort3"].item()
             
             
         elif ZiiPOSExcel.iloc[x]["ItemCode"] =='A229':
             #208.Kaki Fry
             tempResultA211=SourceDataFromDB.loc[SourceDataFromDB['ItemCode']== "A211"]
-            tempReadData["PrinterPort"]=tempResultA211["PrinterPort"].item()
-            tempReadData["PrinterPort1"]=tempResultA211["PrinterPort1"].item()
-            tempReadData["PrinterPort2"]=tempResultA211["PrinterPort2"].item()
-            tempReadData["PrinterPort3"]=tempResultA211["PrinterPort3"].item()
+            
+            if tempResultA211.empty:
+                print("na")
+            else:
+                
+                tempReadData["PrinterPort"]=tempResultA211["PrinterPort"].item()
+                tempReadData["PrinterPort1"]=tempResultA211["PrinterPort1"].item()
+                tempReadData["PrinterPort2"]=tempResultA211["PrinterPort2"].item()
+                tempReadData["PrinterPort3"]=tempResultA211["PrinterPort3"].item()
                     
      
 
@@ -346,8 +375,10 @@ def processPrinterSetting(ZiiPOSExcel, SourceDataFromDB):
             tempReadData["PrinterPort3"]=tempResult["PrinterPort3"].item()
                 
            
-           
-        NewExcelDataFrame = NewExcelDataFrame.append (tempReadData)
+        #pd.concat([NewExcelDataFrame, tempReadData])
+        #NewExcelDataFrame = pd.concat([NewExcelDataFrame,tempReadData])
+
+        NewExcelDataFrame = NewExcelDataFrame.append(tempReadData)
             
             
            
@@ -356,8 +387,6 @@ def processPrinterSetting(ZiiPOSExcel, SourceDataFromDB):
     
         
     return NewExcelDataFrame
-
-
 
 
 
