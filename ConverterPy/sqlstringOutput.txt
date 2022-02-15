@@ -1,0 +1,45 @@
+UPDATE Profile SET CompanyName = N'OKAMI CHELSEA HEIGHTS', Telephone = N'(03) 9772 8088, ABN = N27 734 116 754 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UPDATE Profile SET CompanyName = N'OKAMI CHELSEA HEIGHTS', Telephone = N'(03) 9772 8088', ABN = N'27 734 116 754  ', Address = N'1/93 Wells Rd
+Chelsea Heights VIC 3056', DefaultBackupPath = N'C:\ZiiBackup', JobListFormatForPrinter1 = 13', JobListFormatForPrinter2 = 13', JobListFormatForPrinter3 = 13', JobListFormatForPrinter4 = 14', JobListFormatForPrinter5 = 14', JobListFormatForPrinter6 = 14', JobListFormatForPrinter7 = 0', JobListFormatForPrinter8 = 13', JobListFormatForPrinter9 = 14', JobListFormatForPrinter10 = 0', JobListFormatForPrinter11 = 0', JobListFormatForPrinter12 = 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
