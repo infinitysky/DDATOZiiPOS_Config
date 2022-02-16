@@ -22,10 +22,6 @@ def main():
     SourceSQLServerConnection = pyodbc.connect('DRIVER={SQL Server}; SERVER='+server+'; DATABASE='+sourceDatabase+'; UID='+username+'; PWD='+ password)
 
     TargetSQLServerConnection = pyodbc.connect('DRIVER={SQL Server}; SERVER='+server+'; DATABASE='+targetDatabase+'; UID='+username+'; PWD='+ password)
-
-
-    
-    
     TargetSQLServerCursor = TargetSQLServerConnection.cursor()
 
 
